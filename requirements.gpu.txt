@@ -1,0 +1,3 @@
+qulacs-gpu
+pennylane-qulacs
+

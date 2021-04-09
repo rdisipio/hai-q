@@ -21,6 +21,9 @@ class QLSTM(keras.layers.Layer):
         self.return_state = return_state
 
         self.wires = [i for i in range(self.n_qubits)]
+
+        if 'qulacs' in self.backend:
+            self.device = qml.device(self.backend, wires=self.wires, gpu=True)
         self.device = qml.device(self.backend, wires=self.wires)
 
         def _circuit_forget(inputs, weights):
