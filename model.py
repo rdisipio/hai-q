@@ -5,7 +5,7 @@ from tensorflow import keras
 class QLSTM(keras.layers.Layer):
     def __init__(self,
                 units: int, 
-                n_qubits: int=4,
+                n_qubits: int,
                 n_qlayers: int=1,
                 return_sequences=False, 
                 return_state=False,
@@ -123,18 +123,13 @@ class HaikuLM(tf.keras.Model):
                 backend: str='default.qubit',
                 **kwargs):
         super(HaikuLM, self).__init__(**kwargs)
-        self.embed_dim = embed_dim
-        self.vocab_size = vocab_size
-        self.hidden_dim = hidden_dim
-        self.n_qubits = n_qubits
-        self.backend = backend
     
-        self.embed = keras.layers.Embedding(self.vocab_size, self.embed_dim)
-        if self.n_qubits == 0:
-            self.lstm = keras.layers.LSTM(self.hidden_dim)
+        self.embed = keras.layers.Embedding(vocab_size, embed_dim)
+        if n_qubits == 0:
+            self.lstm = keras.layers.LSTM(hidden_dim)
         else:
-            self.lstm = QLSTM(self.hidden_dim, n_qubits=self.n_qubits)
-        self.hidden2id = keras.layers.Dense(self.vocab_size, activation='softmax')
+            self.lstm = QLSTM(hidden_dim, n_qubits=n_qubits, backend=backend)
+        self.hidden2id = keras.layers.Dense(vocab_size, activation='softmax')
     
     def call(self, inputs):
         x = self.embed(inputs)
