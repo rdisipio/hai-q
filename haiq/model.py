@@ -23,6 +23,7 @@ class QLSTM(keras.layers.Layer):
         self.wires = [i for i in range(self.n_qubits)]
 
         if 'qulacs' in self.backend:
+            print("Using qulacs simulator as backend")
             self.device = qml.device(self.backend, wires=self.wires, gpu=True)
         self.device = qml.device(self.backend, wires=self.wires)
 
