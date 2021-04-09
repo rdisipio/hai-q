@@ -20,39 +20,32 @@ class QLSTM(keras.layers.Layer):
         self.return_sequences = return_sequences
         self.return_state = return_state
 
-        self.wires_forget = [f"wire_forget_{i}" for i in range(self.n_qubits)]
-        self.wires_input = [f"wire_input_{i}" for i in range(self.n_qubits)]
-        self.wires_update = [f"wire_update_{i}" for i in range(self.n_qubits)]
-        self.wires_output = [f"wire_output_{i}" for i in range(self.n_qubits)]
-
-        self.dev_forget = qml.device(self.backend, wires=self.wires_forget)
-        self.dev_input = qml.device(self.backend, wires=self.wires_input)
-        self.dev_update = qml.device(self.backend, wires=self.wires_update)
-        self.dev_output = qml.device(self.backend, wires=self.wires_output)
+        self.wires = [i for i in range(self.n_qubits)]
+        self.device = qml.device(self.backend, wires=self.wires)
 
         def _circuit_forget(inputs, weights):
-            qml.templates.AngleEmbedding(inputs, wires=self.wires_forget)
-            qml.templates.BasicEntanglerLayers(weights, wires=self.wires_forget)
-            return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires_forget]
-        self.qlayer_forget = qml.QNode(_circuit_forget, self.dev_forget, interface="tf")
+            qml.templates.AngleEmbedding(inputs, wires=self.wires)
+            qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
+            return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
+        self.qlayer_forget = qml.QNode(_circuit_forget, self.device, interface="tf")
 
         def _circuit_input(inputs, weights):
-            qml.templates.AngleEmbedding(inputs, wires=self.wires_input)
-            qml.templates.BasicEntanglerLayers(weights, wires=self.wires_input)
-            return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires_input]
-        self.qlayer_input = qml.QNode(_circuit_input, self.dev_input, interface="tf")
+            qml.templates.AngleEmbedding(inputs, wires=self.wires)
+            qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
+            return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
+        self.qlayer_input = qml.QNode(_circuit_input, self.device, interface="tf")
 
         def _circuit_update(inputs, weights):
-            qml.templates.AngleEmbedding(inputs, wires=self.wires_update)
-            qml.templates.BasicEntanglerLayers(weights, wires=self.wires_update)
-            return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires_update]
-        self.qlayer_update = qml.QNode(_circuit_update, self.dev_update, interface="tf")
+            qml.templates.AngleEmbedding(inputs, wires=self.wires)
+            qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
+            return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
+        self.qlayer_update = qml.QNode(_circuit_update, self.device, interface="tf")
 
         def _circuit_output(inputs, weights):
-            qml.templates.AngleEmbedding(inputs, wires=self.wires_output)
-            qml.templates.BasicEntanglerLayers(weights, wires=self.wires_output)
-            return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires_output]
-        self.qlayer_output = qml.QNode(_circuit_output, self.dev_output, interface="tf")
+            qml.templates.AngleEmbedding(inputs, wires=self.wires)
+            qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
+            return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
+        self.qlayer_output = qml.QNode(_circuit_output, self.device, interface="tf")
         
         weight_shapes = {"weights": (self.n_qlayers, self.n_qubits)}
         print(f"weight_shapes = (n_qlayers, n_qubits) = ({self.n_qlayers}, {self.n_qubits})")
@@ -80,8 +73,6 @@ class QLSTM(keras.layers.Layer):
             c_t = tf.zeros((batch_size, self.units))  # cell state
         else:
             h_t, c_t = initial_state
-            #h_t = h_t[0] #?
-            #c_t = c_t[0] #?
         
         for t in range(seq_length):
             # get features from the t-th element in seq, for all entries in the batch
