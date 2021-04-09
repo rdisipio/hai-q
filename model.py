@@ -71,15 +71,15 @@ class QLSTM(keras.layers.Layer):
         self.W_out = self.add_weight(shape=(self.n_qubits, self.units),
             initializer='glorot_uniform', trainable=True)
         
-    def call(self, inputs, init_states=None):
+    def call(self, inputs, initial_state=None):
         batch_size, seq_length, features_size = tf.shape(inputs)
 
         hidden_seq = []
-        if init_states is None:
+        if initial_state is None:
             h_t = tf.zeros((batch_size, self.units))  # hidden state (output)
             c_t = tf.zeros((batch_size, self.units))  # cell state
         else:
-            h_t, c_t = init_states
+            h_t, c_t = initial_state
             #h_t = h_t[0] #?
             #c_t = c_t[0] #?
         
@@ -104,7 +104,7 @@ class QLSTM(keras.layers.Layer):
         hidden_seq = tf.Tensor(hidden_seq)
         hidden_seq = hidden_seq.transpose(0,1)
 
-        if return_sequences is True:
+        if self.return_sequences is True:
             return hidden_seq
         else:
             return hidden_seq[-1]
