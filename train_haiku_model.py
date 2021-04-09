@@ -78,7 +78,8 @@ if __name__ == '__main__':
                 epochs=EPOCHS, batch_size=BATCH_SIZE,
                 shuffle=True)
 
-    tf.model.save("model_haiku")
+    tf.keras.models.save_model(model, "model_haiku")
+    print(model.summary())
 
     model_params = {
             'embed_dim': EMBED_DIM,
