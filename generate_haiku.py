@@ -23,7 +23,7 @@ if __name__ == '__main__':
     int2char = {i:c for i,c in enumerate(vocab)}
     char2int = {c:i for i,c in enumerate(vocab)}
 
-    model = HaikuLM(4, VOCAB_SIZE, 8, 0)
+    model = HaikuLM(8, VOCAB_SIZE, 32, 0)
     model.load_weights(model_path)
 
     # generate characters
