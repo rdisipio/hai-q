@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import pickle
 
 import numpy as np
@@ -20,13 +21,24 @@ def get_ngrams(X, n):
 
 
 if __name__ == '__main__':
-    EPOCHS = 10
-    BATCH_SIZE = 32
-    WINDOW_SIZE = 10
-    EMBED_DIM = 4
-    HIDDEN_DIM = 8
-    N_QUBITS = 0
-    BACKEND = 'default.qubits'
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-e', '--epochs', type=int, default=5)
+    parser.add_argument('-b', '--batch_size', type=int, default=32)
+    parser.add_argument('-W', '--window_size', type=int, default=10)
+    parser.add_argument('-E', '--embed_dim', type=int, default=4)
+    parser.add_argument('-H', '--hidden_dim', type=int, default=8)
+    parser.add_argument('-Q', '--n_qubits', type=int, default=4)
+    parser.add_argument('-B', '--backend', default='default.qubits')
+    args = parser.parse_args()
+
+    EPOCHS = args.epochs
+    BATCH_SIZE = args.batch_size
+    WINDOW_SIZE = args.window_size
+    EMBED_DIM = args.embed_dim
+    HIDDEN_DIM = args.hidden_dim
+    N_QUBITS = args.n_qubits
+    BACKEND = args.backend
 
     f = open('haikus.pkl', 'rb')
     data = pickle.load(f)
