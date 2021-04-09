@@ -71,7 +71,7 @@ class QLSTM(keras.layers.Layer):
         self.W_out = self.add_weight(shape=(self.n_qubits, self.units),
             initializer='glorot_uniform', trainable=True)
         
-    def call(self, inputs, init_states):
+    def call(self, inputs, init_states=None):
         batch_size, seq_length, features_size = tf.shape(inputs)
 
         hidden_seq = []
