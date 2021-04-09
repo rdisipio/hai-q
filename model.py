@@ -58,10 +58,10 @@ class QLSTM(keras.layers.Layer):
         print(f"weight_shapes = (n_qlayers, n_qubits) = ({self.n_qlayers}, {self.n_qubits})")
 
         self.VQC = {
-            'forget': qml.qnn.KerasLayer(self.qlayer_forget, weight_shapes),
-            'input': qml.qnn.KerasLayer(self.qlayer_input, weight_shapes),
-            'update': qml.qnn.KerasLayer(self.qlayer_update, weight_shapes),
-            'output': qml.qnn.KerasLayer(self.qlayer_output, weight_shapes)
+            'forget': qml.qnn.KerasLayer(self.qlayer_forget, weight_shapes, output_dim=self.n_qubits),
+            'input': qml.qnn.KerasLayer(self.qlayer_input, weight_shapes, output_dim=self.n_qubits),
+            'update': qml.qnn.KerasLayer(self.qlayer_update, weight_shapes, output_dim=self.n_qubits),
+            'output': qml.qnn.KerasLayer(self.qlayer_output, weight_shapes, output_dim=self.n_qubits)
         }
 
     def build(self, input_shape):
@@ -121,14 +121,15 @@ class HaikuLM(tf.keras.Model):
         super(HaikuLM, self).__init__(**kwargs)
         self.embed_dim = embed_dim
         self.vocab_size = vocab_size
+        self.hidden_dim = hidden_dim
         self.n_qubits = n_qubits
         self.backend = backend
     
-        self.embed = keras.layers.Embedding(self.embed_dim, self.vocab_size)
+        self.embed = keras.layers.Embedding(self.vocab_size, self.embed_dim)
         if self.n_qubits == 0:
             self.lstm = keras.layers.LSTM(self.hidden_dim)
         else:
-            self.lstm = QLSTM(self.embed_dim)
+            self.lstm = QLSTM(self.hidden_dim, n_qubits=self.n_qubits)
         self.hidden2id = keras.layers.Dense(self.vocab_size, activation='softmax')
     
     def call(self, inputs):

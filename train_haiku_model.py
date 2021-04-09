@@ -25,7 +25,7 @@ if __name__ == '__main__':
     WINDOW_SIZE = 10
     EMBED_DIM = 4
     HIDDEN_DIM = 8
-    N_QUBITS = 4
+    N_QUBITS = 0
     BACKEND = 'default.qubits'
 
     f = open('haikus.pkl', 'rb')
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         backend=BACKEND)
     
     optimizer = keras.optimizers.Adam(learning_rate=1e-3)
-    model.compile(optimizer, loss=keras.losses.CategoricalCrossentropy())
+    model.compile(optimizer, loss=keras.losses.SparseCategoricalCrossentropy())
 
     model.fit(X_train, y_train, 
                 epochs=EPOCHS, batch_size=BATCH_SIZE,
