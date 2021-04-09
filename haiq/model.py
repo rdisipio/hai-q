@@ -9,7 +9,8 @@ class QLSTM(keras.layers.Layer):
                 n_qlayers: int=1,
                 return_sequences=False, 
                 return_state=False,
-                backend="default.qubit"):
+                backend="default.qubit",
+                shots=100):
         super(QLSTM, self).__init__()
         self.units = units
         self.concat_size = None
@@ -24,8 +25,8 @@ class QLSTM(keras.layers.Layer):
 
         if 'qulacs' in self.backend:
             print("Using qulacs simulator as backend")
-            self.device = qml.device(self.backend, wires=self.wires, gpu=True)
-        self.device = qml.device(self.backend, wires=self.wires)
+            self.device = qml.device(self.backend, wires=self.wires, gpu=True, shots=shots)
+        self.device = qml.device(self.backend, wires=self.wires, shots=shots)
 
         def _circuit_forget(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires)
@@ -116,6 +117,7 @@ class HaikuLM(tf.keras.Model):
                 hidden_dim: int,
                 n_qubits: int=0,
                 backend: str='default.qubit',
+                shots=100,
                 **kwargs):
         super(HaikuLM, self).__init__(**kwargs)
     
@@ -123,7 +125,7 @@ class HaikuLM(tf.keras.Model):
         if n_qubits == 0:
             self.lstm = keras.layers.LSTM(hidden_dim)
         else:
-            self.lstm = QLSTM(hidden_dim, n_qubits=n_qubits, backend=backend)
+            self.lstm = QLSTM(hidden_dim, n_qubits=n_qubits, backend=backend, shots=shots)
         self.hidden2id = keras.layers.Dense(vocab_size, activation='softmax')
     
     def call(self, inputs):

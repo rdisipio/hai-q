@@ -30,6 +30,7 @@ if __name__ == '__main__':
     parser.add_argument('-H', '--hidden_dim', type=int, default=8)
     parser.add_argument('-Q', '--n_qubits', type=int, default=4)
     parser.add_argument('-B', '--backend', default='default.qubit')
+    parser.add_argument('-S', '--shots', type=int, default=100)
     args = parser.parse_args()
 
     EPOCHS = args.epochs
@@ -69,7 +70,8 @@ if __name__ == '__main__':
         vocab_size=VOCAB_SIZE,
         hidden_dim=HIDDEN_DIM,
         n_qubits=N_QUBITS,
-        backend=BACKEND)
+        backend=BACKEND,
+        shots=SHOTS)
     
     optimizer = keras.optimizers.Adam(learning_rate=1e-3)
     model.compile(optimizer, loss=keras.losses.SparseCategoricalCrossentropy())
