@@ -40,6 +40,7 @@ if __name__ == '__main__':
     HIDDEN_DIM = args.hidden_dim
     N_QUBITS = args.n_qubits
     BACKEND = args.backend
+    SHOTS = args.shots
 
     f = open('haikus.pkl', 'rb')
     data = pickle.load(f)
