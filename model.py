@@ -105,13 +105,13 @@ class QLSTM(keras.layers.Layer):
             c_t = (f_t * c_t) + (i_t * g_t)
             h_t = o_t * tf.math.tanh(c_t)
             hidden_seq.append(h_t)
-        hidden_seq = tf.Tensor(hidden_seq)
-        hidden_seq = hidden_seq.transpose(0,1)
+        hidden_seq = tf.convert_to_tensor(hidden_seq)  # (seq, batch, embed)
+        hidden_seq = tf.transpose(hidden_seq, (1,0,2)) # (batch, seq, embed)
 
         if self.return_sequences is True:
             return hidden_seq
         else:
-            return hidden_seq[-1]
+            return hidden_seq[:, -1, :]
 
 
 class HaikuLM(tf.keras.Model):

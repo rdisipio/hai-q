@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # generate characters
     token_ids = tf.convert_to_tensor([char2int['[sos]']], dtype=tf.int64)
-    for i in range(10):
+    for i in range(100):
         logits = model(tf.expand_dims(token_ids, axis=0))
         id = tf.argmax(logits, axis=-1)
         token_ids = tf.concat([token_ids, id], axis=-1)

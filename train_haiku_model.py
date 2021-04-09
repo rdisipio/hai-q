@@ -29,7 +29,7 @@ if __name__ == '__main__':
     parser.add_argument('-E', '--embed_dim', type=int, default=4)
     parser.add_argument('-H', '--hidden_dim', type=int, default=8)
     parser.add_argument('-Q', '--n_qubits', type=int, default=4)
-    parser.add_argument('-B', '--backend', default='default.qubits')
+    parser.add_argument('-B', '--backend', default='default.qubit')
     args = parser.parse_args()
 
     EPOCHS = args.epochs
