@@ -27,8 +27,8 @@ setup(
         'Programming Language :: Python'
     ],
     scripts=[
-        'download_haiku.py',
-        'train_haiku_model.pyh',
-        'generate_haiku.py'
+        'scripts/download_haiku.py',
+        'scripts/train_haiku_model.py',
+        'scripts/generate_haiku.py'
         ],
 )
