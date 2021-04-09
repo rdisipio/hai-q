@@ -5,9 +5,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras 
 
-from model import HaikuLM, QLSTM
+from haiq.model import HaikuLM, QLSTM
 
-#from train_haiku_model import HaikuLM
 
 if __name__ == '__main__':
     model_path = "model_haiku"
