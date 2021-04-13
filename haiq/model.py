@@ -2,6 +2,10 @@ import pennylane as qml
 import tensorflow as tf
 from tensorflow import keras
 
+from jax.config import config as jax_config
+jax_config.update("jax_enable_x64", True)
+
+
 class QLSTM(keras.layers.Layer):
     def __init__(self,
                 units: int, 
@@ -10,12 +14,14 @@ class QLSTM(keras.layers.Layer):
                 return_sequences=False, 
                 return_state=False,
                 backend="default.qubit",
+                interface='jax',
                 shots=100):
         super(QLSTM, self).__init__()
         self.units = units
         self.concat_size = None
         self.n_qubits = n_qubits
         self.n_qlayers = n_qlayers
+        self.interface = interface  # 'jax', 'tf'
         self.backend = backend  # "default.qubit", "qiskit.basicaer", "qiskit.ibm"
 
         self.return_sequences = return_sequences
@@ -32,25 +38,25 @@ class QLSTM(keras.layers.Layer):
             qml.templates.AngleEmbedding(inputs, wires=self.wires)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
-        self.qlayer_forget = qml.QNode(_circuit_forget, self.device, interface="tf")
+        self.qlayer_forget = qml.QNode(_circuit_forget, self.device, interface=self.interface)
 
         def _circuit_input(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
-        self.qlayer_input = qml.QNode(_circuit_input, self.device, interface="tf")
+        self.qlayer_input = qml.QNode(_circuit_input, self.device, interface=self.interface)
 
         def _circuit_update(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
-        self.qlayer_update = qml.QNode(_circuit_update, self.device, interface="tf")
+        self.qlayer_update = qml.QNode(_circuit_update, self.device, interface=self.interface)
 
         def _circuit_output(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
-        self.qlayer_output = qml.QNode(_circuit_output, self.device, interface="tf")
+        self.qlayer_output = qml.QNode(_circuit_output, self.device, interface=self.interface)
         
         weight_shapes = {"weights": (self.n_qlayers, self.n_qubits)}
         print(f"weight_shapes = (n_qlayers, n_qubits) = ({self.n_qlayers}, {self.n_qubits})")
