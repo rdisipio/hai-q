@@ -77,23 +77,23 @@ class QLSTM(keras.layers.Layer):
     def build(self, input_shape):
         self.concat_size = input_shape[-1] + self.units
         self.W_in = self.add_weight(shape=(self.concat_size, self.n_qubits),
-            initializer='glorot_uniform', trainable=True, dtype=tf.float64)
+            initializer='glorot_uniform', trainable=True)
         self.W_out = self.add_weight(shape=(self.n_qubits, self.units),
-            initializer='glorot_uniform', trainable=True, dtype=tf.float64)
+            initializer='glorot_uniform', trainable=True)
         
     def call(self, inputs, initial_state=None):
         batch_size, seq_length, features_size = tf.shape(inputs)
 
         hidden_seq = []
         if initial_state is None:
-            h_t = tf.zeros((batch_size, self.units), dtype=tf.float64)  # hidden state (output)
-            c_t = tf.zeros((batch_size, self.units), dtype=tf.float64)  # cell state
+            h_t = tf.zeros((batch_size, self.units))  # hidden state (output)
+            c_t = tf.zeros((batch_size, self.units))  # cell state
         else:
             h_t, c_t = initial_state
         
         for t in range(seq_length):
             # get features from the t-th element in seq, for all entries in the batch
-            x_t = tf.cast(inputs[:, t, :], tf.float64)
+            x_t = inputs[:, t, :]
 
             # Concatenate input and hidden state
             v_t = tf.concat((h_t, x_t), axis=1)
