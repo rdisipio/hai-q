@@ -16,14 +16,14 @@ class QLSTM(keras.layers.Layer):
                 backend="default.qubit",
                 diff_method='backprop',
                 interface='tf',
-                shots=None):
+                shots=0):
         super(QLSTM, self).__init__()
         self.units = units
         self.concat_size = None
         self.n_qubits = n_qubits
         self.n_qlayers = n_qlayers
         self.interface = interface  # 'jax', 'tf'
-        self.backend = backend  # "default.qubit", "qiskit.basicaer", "qiskit.ibm"
+        self.backend = backend  # "default.qubit.tf", "qiskit.basicaer", "qiskit.ibm"
         self.diff_method = diff_method  # "backprop", "adjoint"
 
         self.return_sequences = return_sequences
@@ -33,8 +33,8 @@ class QLSTM(keras.layers.Layer):
 
         if 'qulacs' in self.backend:
             print("Using qulacs simulator as backend")
-            self.device = qml.device(self.backend, wires=self.wires, gpu=True, shots=shots)
-        self.device = qml.device(self.backend, wires=self.wires, shots=shots)
+            self.device = qml.device(self.backend, wires=self.wires, gpu=True) #, shots=shots)
+        self.device = qml.device(self.backend, wires=self.wires) #, shots=shots)
 
         print(f"Differentiation method: {self.diff_method}")
 
@@ -128,7 +128,7 @@ class HaikuLM(tf.keras.Model):
                 n_qubits: int=0,
                 backend: str='default.qubit',
                 diff_method='backprop',
-                shots=None,
+                shots=0,
                 **kwargs):
         super(HaikuLM, self).__init__(**kwargs)
     
