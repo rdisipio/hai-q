@@ -2,6 +2,8 @@ import pennylane as qml
 import tensorflow as tf
 from tensorflow import keras
 
+import numpy as np
+
 from jax.config import config as jax_config
 jax_config.update("jax_enable_x64", True)
 
@@ -75,38 +77,41 @@ class QLSTM(keras.layers.Layer):
     def build(self, input_shape):
         self.concat_size = input_shape[-1] + self.units
         self.W_in = self.add_weight(shape=(self.concat_size, self.n_qubits),
-            initializer='glorot_uniform', trainable=True)
+            initializer='glorot_uniform', trainable=True, dtype=tf.float64)
         self.W_out = self.add_weight(shape=(self.n_qubits, self.units),
-            initializer='glorot_uniform', trainable=True)
+            initializer='glorot_uniform', trainable=True, dtype=tf.float64)
         
     def call(self, inputs, initial_state=None):
         batch_size, seq_length, features_size = tf.shape(inputs)
 
         hidden_seq = []
         if initial_state is None:
-            h_t = tf.zeros((batch_size, self.units))  # hidden state (output)
-            c_t = tf.zeros((batch_size, self.units))  # cell state
+            h_t = tf.zeros((batch_size, self.units), dtype=tf.float64)  # hidden state (output)
+            c_t = tf.zeros((batch_size, self.units), dtype=tf.float64)  # cell state
         else:
             h_t, c_t = initial_state
         
         for t in range(seq_length):
             # get features from the t-th element in seq, for all entries in the batch
-            x_t = inputs[:, t, :]
+            x_t = tf.cast(inputs[:, t, :], tf.float64)
 
             # Concatenate input and hidden state
             v_t = tf.concat((h_t, x_t), axis=1)
         
             # match qubit dimension
             y_t = tf.matmul(v_t, self.W_in)
+            print(">>>", y_t)
+            y_t = tf.cast(y_t, tf.float64)
+            print(">>>", y_t)
+            z_forget = self.VQC['forget'](y_t)
+            z_input = self.VQC['input'](y_t)
+            z_update = self.VQC['update'](y_t)
+            z_output = self.VQC['output'](y_t)
 
-            f_t = tf.math.sigmoid(tf.matmul(
-                tf.dtypes.cast(self.VQC['forget'](y_t), tf.float32), self.W_out))
-            i_t = tf.math.sigmoid(tf.matmul(
-                tf.dtypes.cast(self.VQC['input'](y_t), tf.float32), self.W_out))
-            g_t = tf.math.sigmoid(tf.matmul(
-                tf.dtypes.cast(self.VQC['update'](y_t), tf.float32), self.W_out))
-            o_t = tf.math.sigmoid(tf.matmul(
-                tf.dtypes.cast(self.VQC['output'](y_t), tf.float32), self.W_out))
+            f_t = tf.math.sigmoid(tf.matmul(z_forget, self.W_out))
+            i_t = tf.math.sigmoid(tf.matmul(z_input, self.W_out))
+            g_t = tf.math.sigmoid(tf.matmul(z_update, self.W_out))
+            o_t = tf.math.sigmoid(tf.matmul(z_output, self.W_out))
 
             c_t = (f_t * c_t) + (i_t * g_t)
             h_t = o_t * tf.math.tanh(c_t)
