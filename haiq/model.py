@@ -14,8 +14,9 @@ class QLSTM(keras.layers.Layer):
                 return_sequences=False, 
                 return_state=False,
                 backend="default.qubit",
-                interface='jax',
-                shots=100):
+                diff_method='backprop',
+                interface='tf',
+                shots=None):
         super(QLSTM, self).__init__()
         self.units = units
         self.concat_size = None
@@ -23,6 +24,7 @@ class QLSTM(keras.layers.Layer):
         self.n_qlayers = n_qlayers
         self.interface = interface  # 'jax', 'tf'
         self.backend = backend  # "default.qubit", "qiskit.basicaer", "qiskit.ibm"
+        self.diff_method = diff_method  # "backprop", "adjoint"
 
         self.return_sequences = return_sequences
         self.return_state = return_state
@@ -34,29 +36,31 @@ class QLSTM(keras.layers.Layer):
             self.device = qml.device(self.backend, wires=self.wires, gpu=True, shots=shots)
         self.device = qml.device(self.backend, wires=self.wires, shots=shots)
 
+        print(f"Differentiation method: {self.diff_method}")
+
         def _circuit_forget(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
-        self.qlayer_forget = qml.QNode(_circuit_forget, self.device, interface=self.interface)
+        self.qlayer_forget = qml.QNode(_circuit_forget, self.device, interface=self.interface, diff_method=self.diff_method)
 
         def _circuit_input(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
-        self.qlayer_input = qml.QNode(_circuit_input, self.device, interface=self.interface)
+        self.qlayer_input = qml.QNode(_circuit_input, self.device, interface=self.interface, diff_method=self.diff_method)
 
         def _circuit_update(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
-        self.qlayer_update = qml.QNode(_circuit_update, self.device, interface=self.interface)
+        self.qlayer_update = qml.QNode(_circuit_update, self.device, interface=self.interface, diff_method=self.diff_method)
 
         def _circuit_output(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires]
-        self.qlayer_output = qml.QNode(_circuit_output, self.device, interface=self.interface)
+        self.qlayer_output = qml.QNode(_circuit_output, self.device, interface=self.interface, diff_method=self.diff_method)
         
         weight_shapes = {"weights": (self.n_qlayers, self.n_qubits)}
         print(f"weight_shapes = (n_qlayers, n_qubits) = ({self.n_qlayers}, {self.n_qubits})")
@@ -123,7 +127,8 @@ class HaikuLM(tf.keras.Model):
                 hidden_dim: int,
                 n_qubits: int=0,
                 backend: str='default.qubit',
-                shots=100,
+                diff_method='backprop',
+                shots=None,
                 **kwargs):
         super(HaikuLM, self).__init__(**kwargs)
     
@@ -131,7 +136,10 @@ class HaikuLM(tf.keras.Model):
         if n_qubits == 0:
             self.lstm = keras.layers.LSTM(hidden_dim)
         else:
-            self.lstm = QLSTM(hidden_dim, n_qubits=n_qubits, backend=backend, shots=shots)
+            self.lstm = QLSTM(hidden_dim, n_qubits=n_qubits, 
+                            backend=backend,
+                            diff_method=diff_method,
+                            shots=shots)
         self.hidden2id = keras.layers.Dense(vocab_size, activation='softmax')
     
     def call(self, inputs):

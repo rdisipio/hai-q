@@ -34,7 +34,8 @@ if __name__ == '__main__':
     parser.add_argument('-H', '--hidden_dim', type=int, default=8)
     parser.add_argument('-Q', '--n_qubits', type=int, default=4)
     parser.add_argument('-B', '--backend', default='default.qubit')
-    parser.add_argument('-S', '--shots', type=int, default=100)
+    parser.add_argument('-D', '--diff_method', default='backprop')
+    parser.add_argument('-S', '--shots', type=int, default=None)
     args = parser.parse_args()
 
     EPOCHS = args.epochs
@@ -44,6 +45,7 @@ if __name__ == '__main__':
     HIDDEN_DIM = args.hidden_dim
     N_QUBITS = args.n_qubits
     BACKEND = args.backend
+    DIFF_METHOD = args.diff_method
     SHOTS = args.shots
 
     f = open('haikus.pkl', 'rb')
@@ -76,6 +78,7 @@ if __name__ == '__main__':
         hidden_dim=HIDDEN_DIM,
         n_qubits=N_QUBITS,
         backend=BACKEND,
+        diff_method=DIFF_METHOD,
         shots=SHOTS)
     
     optimizer = keras.optimizers.Adam(learning_rate=1e-3)
