@@ -100,11 +100,11 @@ class QLSTM(keras.layers.Layer):
         
             # match qubit dimension
             y_t = tf.matmul(v_t, self.W_in)
-            y_t = tf.cast(y_t, tf.float64)
-            z_forget = self.VQC['forget'](y_t)
-            z_input = self.VQC['input'](y_t)
-            z_update = self.VQC['update'](y_t)
-            z_output = self.VQC['output'](y_t)
+            #y_t = tf.cast(y_t, tf.float64)
+            z_forget = tf.cast(self.VQC['forget'](y_t), tf.float32)
+            z_input = tf.cast(self.VQC['input'](y_t), tf.float32)
+            z_update = tf.cast(self.VQC['update'](y_t), tf.float32)
+            z_output = tf.cast(self.VQC['output'](y_t), tf.float32)
 
             f_t = tf.math.sigmoid(tf.matmul(z_forget, self.W_out))
             i_t = tf.math.sigmoid(tf.matmul(z_input, self.W_out))
