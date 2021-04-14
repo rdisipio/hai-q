@@ -13,7 +13,7 @@ class QLSTM(keras.layers.Layer):
                 n_qlayers: int=1,
                 return_sequences=False, 
                 return_state=False,
-                backend="default.qubit",
+                backend="default.qubit.tf",
                 diff_method='backprop',
                 interface='tf',
                 shots=0):
@@ -35,7 +35,7 @@ class QLSTM(keras.layers.Layer):
             print("Using qulacs simulator as backend")
             self.device = qml.device(self.backend, wires=self.wires, gpu=True) #, shots=shots)
         self.device = qml.device(self.backend, wires=self.wires) #, shots=shots)
-
+        print(f"Backend: {self.backend}")
         print(f"Differentiation method: {self.diff_method}")
 
         def _circuit_forget(inputs, weights):
@@ -126,7 +126,7 @@ class HaikuLM(tf.keras.Model):
                 vocab_size: int,
                 hidden_dim: int,
                 n_qubits: int=0,
-                backend: str='default.qubit',
+                backend: str='default.qubit.tf',
                 diff_method='backprop',
                 shots=0,
                 **kwargs):
