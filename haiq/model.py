@@ -100,7 +100,7 @@ class QLSTM(keras.layers.Layer):
         
             # match qubit dimension
             y_t = tf.matmul(v_t, self.W_in)
-            #y_t = tf.cast(y_t, tf.float64)
+            y_t = tf.cast(y_t, tf.float64)
             z_forget = tf.cast(self.VQC['forget'](y_t), tf.float32)
             z_input = tf.cast(self.VQC['input'](y_t), tf.float32)
             z_update = tf.cast(self.VQC['update'](y_t), tf.float32)
@@ -136,7 +136,7 @@ class HaikuLM(tf.keras.Model):
         super(HaikuLM, self).__init__(**kwargs)
     
         self.embed = keras.layers.Embedding(vocab_size, embed_dim)
-        if n_qubits == 0:
+        if n_qubits < 0 or n_qubits is None:
             self.lstm = keras.layers.LSTM(hidden_dim)
         else:
             self.lstm = QLSTM(hidden_dim, n_qubits=n_qubits, 
