@@ -14,7 +14,6 @@ future==0.18.2
 google-auth==1.29.0
 google-auth-oauthlib==0.4.4
 grpcio==1.37.0
--e git+https://github.com/rdisipio/hai-q.git@28b228974bd202ef41903c0fc9daa0b25c3a17f2#egg=hai_q
 idna==2.10
 jax==0.2.12
 jaxlib==0.1.65
