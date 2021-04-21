@@ -8,10 +8,89 @@ from jax.config import config as jax_config
 jax_config.update("jax_enable_x64", True)
 
 
+class CLSTM(keras.layers.Layer):
+    def __init__(self,
+                units: int, 
+                return_sequences=False, 
+                return_state=False):
+        super(CLSTM, self).__init__()
+        self.units = units
+        self.concat_size = None
+        self.return_sequences = return_sequences
+        self.return_state = return_state
+
+    def build(self, input_shape):
+        input_dim = input_shape[-1]
+
+        self.U = self.add_weight(shape=(input_dim, self.units * 4))
+        self.W = self.add_weight(shape=(self.units, self.units * 4))
+        self.b = self.add_weight(shape=(self.units * 4,))
+        
+    def call(self, inputs, initial_state=None):
+        batch_size, seq_length, features_size = tf.shape(inputs)
+
+        hidden_seq = []
+        if initial_state is None:
+            h_t = tf.zeros((batch_size, 4 * self.units))  # hidden state (output)
+            c_t = tf.zeros((batch_size, 4 * self.units))  # cell state
+        else:
+            h_t, c_t = initial_state
+        
+        z = tf.matmul(inputs, self.W)
+        z += tf.matmul(h_t, self.U)
+        z += self.b
+
+        z0, z1, z2, z3 = tf.split(z, num_or_size_splits=4, axis=1)
+        i_t = tf.math.sigmoid(z0)
+        f_t = tf.math.sigmoid(z1)
+        g_t = tf.math.sigmoid(z2)
+        o_t = tf.math.sigmoid(z3)
+        c_t = (f_t * c_t) + (i_t * g_t)
+        h_t = o_t * tf.math.tanh(c_t)
+
+
+        ##############
+
+        x_t = tf.transpose(inputs, [1,0,2])  # (seq_len, batch_size, features_size)
+        gates = x_t @ self.W + h_t @ self.U + self.b
+        i_t, f_t, g_t, o_t = tf.split()
+                tf.math.sigmoid(gates[:, :, :HS]),
+                tf.math.sigmoid(gates[:, :, HS:HS*2]),
+                tf.math.sigmoid(gates[:, :, HS*2:HS*3]),
+                tf.math.sigmoid(gates[:, :, HS*3:]),
+            )
+        c_t = (f_t * c_t) + (i_t * g_t)
+        h_t = o_t * tf.math.tanh(c_t)
+
+        for t in range(seq_length):
+            # get features from the t-th element in seq, for all entries in the batch
+            x_t = inputs[:, t, :]
+
+            gates = x_t @ self.W + h_t @ self.U + self.b
+
+            HS = self.units
+            i_t, f_t, g_t, o_t = (
+                tf.math.sigmoid(gates[:, :HS]),
+                tf.math.sigmoid(gates[:, HS:HS*2]),
+                tf.math.sigmoid(gates[:, HS*2:HS*3]),
+                tf.math.sigmoid(gates[:, HS*3:]),
+            )
+            c_t = (f_t * c_t) + (i_t * g_t)
+            h_t = o_t * tf.math.tanh(c_t)
+            hidden_seq.append(h_t)
+        hidden_seq = tf.convert_to_tensor(hidden_seq)  # (seq, batch, embed)
+        hidden_seq = tf.transpose(hidden_seq, (1,0,2)) # (batch, seq, embed)
+
+        if self.return_sequences is True:
+            return hidden_seq
+        else:
+            return hidden_seq[:, -1, :]
+
+
 class QLSTM(keras.layers.Layer):
     def __init__(self,
                 units: int, 
-                n_qubits: int,
+                n_qubits: int=4,
                 n_qlayers: int=1,
                 return_sequences=False, 
                 return_state=False,
@@ -128,7 +207,7 @@ class HaikuLM(tf.keras.Model):
                 embed_dim: int,
                 vocab_size: int,
                 hidden_dim: int,
-                n_qubits: int=0,
+                n_qubits: int=4,
                 backend: str='default.qubit.tf',
                 diff_method='backprop',
                 shots=0,
@@ -136,9 +215,13 @@ class HaikuLM(tf.keras.Model):
         super(HaikuLM, self).__init__(**kwargs)
     
         self.embed = keras.layers.Embedding(vocab_size, embed_dim)
-        if n_qubits < 0 or n_qubits is None:
+        if n_qubits is None:
             self.lstm = keras.layers.LSTM(hidden_dim)
+        elif n_qubits == 0:
+            print(f"Using classical LSTM with hidden dim = {hidden_dim}")
+            self.lstm = CLSTM(hidden_dim)
         else:
+            print(f"Using quantum LSTM with hidden dim = {hidden_dim} and {n_qubits} qubits")
             self.lstm = QLSTM(hidden_dim, n_qubits=n_qubits, 
                             backend=backend,
                             diff_method=diff_method,

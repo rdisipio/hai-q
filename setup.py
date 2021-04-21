@@ -28,7 +28,7 @@ setup(
     ],
     scripts=[
         'scripts/download_haiku.py',
-        'scripts/train_haiku_model.py',
+        'scripts/train_haiku_model_torch.py',
         'scripts/generate_haiku.py'
         ],
 )

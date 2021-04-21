@@ -1,2 +1,2 @@
-from .model import HaikuLM, QLSTM
+from .model_torch import HaikuLM, QLSTM
 

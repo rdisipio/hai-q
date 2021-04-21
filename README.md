@@ -7,7 +7,7 @@ Steps:
 pip install -r requirements.txt
 pip install -e .
 ./scripts/download_haiku.py
-./scripts/train_haiku_model.py -Q 4 -B default.qubit.tf -D 'backprop'
+./scripts/train_haiku_model.py -Q 4 -B default.qubit.tf -D 'backprop'  # this will take a while
 ./scripts/generate_haiku.py
 ```
 
