@@ -52,25 +52,25 @@ class QLSTM(nn.Module):
             qml.templates.AngleEmbedding(inputs, wires=self.wires_forget)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires_forget)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires_forget]
-        self.qlayer_forget = qml.QNode(_circuit_forget, self.dev_forget, interface=self.interface) #, diff_method=self.diff_method)
+        self.qlayer_forget = qml.QNode(_circuit_forget, self.dev_forget, interface=self.interface, diff_method=self.diff_method)
 
         def _circuit_input(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires_input)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires_input)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires_input]
-        self.qlayer_input = qml.QNode(_circuit_input, self.dev_input, interface=self.interface) #, diff_method=self.diff_method)
+        self.qlayer_input = qml.QNode(_circuit_input, self.dev_input, interface=self.interface, diff_method=self.diff_method)
 
         def _circuit_update(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires_update)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires_update)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires_update]
-        self.qlayer_update = qml.QNode(_circuit_update, self.dev_update, interface=self.interface) #, diff_method=self.diff_method)
+        self.qlayer_update = qml.QNode(_circuit_update, self.dev_update, interface=self.interface, diff_method=self.diff_method)
 
         def _circuit_output(inputs, weights):
             qml.templates.AngleEmbedding(inputs, wires=self.wires_output)
             qml.templates.BasicEntanglerLayers(weights, wires=self.wires_output)
             return [qml.expval(qml.PauliZ(wires=w)) for w in self.wires_output]
-        self.qlayer_output = qml.QNode(_circuit_output, self.dev_output, interface=self.interface) #, diff_method=self.diff_method)
+        self.qlayer_output = qml.QNode(_circuit_output, self.dev_output, interface=self.interface, diff_method=self.diff_method)
 
         weight_shapes = {"weights": (n_qlayers, n_qubits)}
         print(f"weight_shapes = (n_qlayers, n_qubits) = ({n_qlayers}, {n_qubits})")
