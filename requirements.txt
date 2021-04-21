@@ -8,18 +8,23 @@ cachetools==4.2.1
 certifi==2020.12.5
 chardet==4.0.0
 decorator==4.4.2
+flatbuffers==1.12
 fsspec==2021.4.0
 future==0.18.2
 google-auth==1.29.0
 google-auth-oauthlib==0.4.4
 grpcio==1.37.0
+-e git+https://github.com/rdisipio/hai-q.git@28b228974bd202ef41903c0fc9daa0b25c3a17f2#egg=hai_q
 idna==2.10
+jax==0.2.12
+jaxlib==0.1.65
 joblib==1.0.1
 Markdown==3.3.4
 multidict==5.1.0
 networkx==2.5.1
 numpy==1.20.2
 oauthlib==3.1.0
+opt-einsum==3.3.0
 packaging==20.9
 pandas==1.2.4
 PennyLane==0.15.0
